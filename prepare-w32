@@ -1,0 +1,14 @@
+#! /bin/sh
+rm Makefile
+rm Makefile.in
+rm ./src/Makefile
+rm ./src/Makefile.in
+cp Makefile.am.w32 Makefile.am
+cp ./src/Makefile.am.w32 ./src/Makefile.am
+cd ./src
+cp spark_curl_w32.cpp spark_curl.cpp
+cp spark_fltk_draw_w32.cpp spark_fltk_draw.cpp
+cp spark_socket_w32.cpp spark_socket.cpp
+cd ..
+automake -f
+autoconf -f

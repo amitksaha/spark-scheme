@@ -1,0 +1,22 @@
+(module cgi-sig (lib "a-signature.ss")
+  ;; -- exceptions raised --
+  (struct cgi-error ())
+  (struct incomplete-%-suffix (chars))
+  (struct invalid-%-suffix (char))
+
+  ;; -- cgi methods --
+  get-bindings
+  get-bindings/post
+  get-bindings/get
+  output-http-headers
+  generate-html-output
+  generate-error-output
+  bindings-as-html
+  extract-bindings
+  extract-binding/single
+  get-cgi-method
+
+  ;; -- general HTML utilities --
+  string->html
+  generate-link-text
+  )

@@ -1,0 +1,39 @@
+autoscan: warning: missing AC_CHECK_FUNCS([atexit]) wanted by: 
+	collects/mzscheme/examples/curses.c:120
+	collects/compiler/mzc.h:63
+	libs/mz-371/collects/mzscheme/examples/curses.c:120
+	libs/mz-371/collects/compiler/mzc.h:63
+autoscan: warning: missing AC_CHECK_HEADERS([stddef.h]) wanted by: 
+	libs/mz-371/include/scheme.h:138
+	libs/mz-371/include/schemegc2.h:27
+autoscan: warning: missing AC_C_INLINE wanted by: 
+	collects/compiler/mzc.h:297
+	libs/mz-371/collects/compiler/mzc.h:297
+	libs/mz-371/include/scheme.h:192
+autoscan: warning: missing AC_PREREQ wanted by: 
+	autoscan
+autoscan: warning: missing AC_PROG_MAKE_SET wanted by: 
+	Makefile:7
+	Makefile:8
+	Makefile:9
+	Makefile:10
+	Makefile:11
+	Makefile:14
+	Makefile:15
+	Makefile:16
+	Makefile:17
+	Makefile:18
+	Makefile:19
+autoscan: warning: missing AC_TYPE_SSIZE_T wanted by: 
+	src/socket/spark_socket.cpp:770
+	src/socket/spark_socket.cpp:804
+autoscan: warning: missing AC_TYPE_UINT16_T wanted by: 
+	src/socket/spark_socket.cpp:540
+	src/socket/spark_socket.cpp:570
+autoscan: warning: missing AC_TYPE_UINT32_T wanted by: 
+	src/socket/spark_socket.cpp:525
+	src/socket/spark_socket.cpp:525
+	src/socket/spark_socket.cpp:540
+	src/socket/spark_socket.cpp:555
+	src/socket/spark_socket.cpp:555
+	src/socket/spark_socket.cpp:570

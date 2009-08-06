@@ -1,0 +1,47 @@
+"Blithe is a stack based concatenative language created by Vijay Mathew." 'blithe doc
+
+"Pushes the newline character to the stack." 'nl doc
+: nl 10 ;
+
+"Pushes the carriage-return character to the stack." 'cr doc
+: cr 13 ;
+
+"Prints a newline at the console." 'newline doc
+: newline cr nl strcat . ;
+
+"Pushes the space character to the stack." 'space doc
+: space 32 ;
+
+"Discards the first pair from the stack." '2drop doc
+: 2drop drop drop ;
+
+"Pushes a copy of the second element to top." 'tuck doc
+: tuck swap over ;
+
+: swapDrop swap drop ;
+
+"Returns the maximum of the first two values." 'max doc
+: max 2dup < ifTrue swapDrop else drop ;
+
+"Returns the minimum of the first two values." 'min doc
+: min 2dup > ifTrue swapDrop else drop ;
+
+: next-fact dup rot * swap 1 + ;
+"Finds the factorial of the top number." 'factorial doc
+: factorial 1 2 rot 1 - times next-fact drop ;
+
+: next-fib dup rot + ;
+"Returns the last element on a sequence of fibonacci numbers." 'fibonacci doc
+: fibonacci 0 1 rot times next-fib swap drop ;
+
+"Creates a new empty list on the stack." 'list doc
+: list null ;
+"Appends an element to a list." 'append doc
+: append pair ;
+"Returns the length of a list." 'length doc
+: length 0 swap check-length ;
+
+"List manipulation helpers." ^
+: swap-add1 swap 1 + ;
+: calc-length second swap-add1 swap check-length ;
+: check-length dup null = ifFalse calc-length else drop ;

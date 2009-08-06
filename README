@@ -1,0 +1,20 @@
+README
+======
+
+Spark (1.0-alpha) for GNU/Linux. 
+Spark is distributed under GPLv3.
+See COPYING for more information.
+
+
+INSTALL
+=======
+
+1. cd to the directory where you unpacked Spark.
+2. Run the following commands:
+	./configure --enable-threads --enable-localjpeg --enable-localzlib --enable-localpng
+	make
+	sudo make install
+3. To verify the installation, try running the samples. For instance:
+	cd ./samples/chess
+	spark chess.ss
+

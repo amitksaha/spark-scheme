@@ -1,0 +1,278 @@
+;; An AVL tree based hash-map.
+;; Copyright (C) 2007, 2008 Vijay Mathew Pandyalakal
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License along
+;; with this program; If not, see <http://www.gnu.org/licenses/>.
+
+;; Please contact Vijay Mathew Pandyalakal if you need additional 
+;; information or have any questions.
+;; (Electronic mail: vijay.the.schemer@gmail.com)
+
+(module spark-hash-map mzscheme
+	
+	;; A hash-map based on AVL tree. put and remove operations cause side-effects
+	;; and they are not thread-safe. The programmer should take care of thread-safety.
+	;; Ref: Knuth - The Art of Computer Programming - Volume 3 (6.2.3 Balanced trees)
+
+	(define-struct node (key data llink rlink b deleted))
+	(define-struct tree (head cmpr))
+
+	(define (default-cmpr a b)
+	  (cond
+	   ((< a b) -1)
+	   ((> a b) 1)
+	   (else 0)))
+
+	(define (make-hash-map . args)
+	  (let ((cmpr default-cmpr))
+	    (if (not (null? args))
+		(set! cmpr (car args)))
+	  (make-tree (make-node null null 0 (make-node null null null null 0 #f) 0 #f)
+		     cmpr)))
+
+	(define (hash-map-get self k . args)
+	  (let ((initialize null) (done null)
+		(move-left null) (move-right null)
+		(compare null) (insert null)
+		(adjust-balance-factors null)
+		(balancing-act null)
+		(single-rotation null)
+		(double-rotation null)
+		(finishing-touch null)
+		(a 1) (r 0) (T null) (S null) 
+		(P null) (Q null) (R null)
+		(HEAD (tree-head self))
+		(cmpr (tree-cmpr self))
+		(data null) (has-data #f)
+		(deleted #f))
+	    (let loop ()
+	      (let ((c null))
+		(if (not (null? args))
+		    (begin
+		      (set! c (car args))
+		      (set! args (cdr args))
+		      (case c
+			((data) 
+			 (set! has-data #t)
+			 (set! data (car args))
+			 (set! args (cdr args)))
+			((delete) 
+			 (set! deleted #t))
+			(else
+			 (error "Invalid keyword argument.")))
+		      (loop)))))
+	    (set! initialize 
+		  (lambda ()
+		    (set! T HEAD)
+		    (set! P (node-rlink HEAD))
+		    (set! S (node-rlink HEAD))))
+	    (set! compare
+		  (lambda ()
+		    (if (null? (node-key (node-rlink HEAD)))
+			(begin
+			  (insert)
+			  (set-node-rlink! HEAD Q)
+			  (set! P Q)
+			  (done))
+			(begin
+			  (set! r (cmpr k (node-key P)))
+			  (cond 
+			   ((< 0 r) (move-left))
+			   ((> 0 r) (move-right))
+			   (else 
+			    (done)))))))
+	    (set! move-left
+		  (lambda ()
+		    (set! Q (node-llink P))
+		    (cond
+		     ((null? Q) 
+		      (insert)
+		      (adjust-balance-factors)
+		      (set-node-llink! P Q))
+		     ((not (= (node-b Q) 0))
+		      (set! T P)
+		      (set! S Q)))
+		    (set! P Q)
+		    (compare)))
+	    (set! move-right
+		  (lambda ()
+		    (set! Q (node-rlink P))
+		    (cond
+		     ((null? Q)
+		      (insert)
+		      (adjust-balance-factors)
+		      (set-node-rlink! P Q))
+		     ((not (= (node-b Q) 0))
+		      (set! T P)
+		      (set! S Q)))
+		    (set! P Q)
+		    (compare)))
+	    (set! insert
+		  (lambda ()
+		    (set! Q (make-node k data null null 0 deleted))))
+	    (set! adjust-balance-factors
+		  (lambda ()
+		    (if (not (null? (node-key S)))
+			(begin
+			  (set! r (cmpr k (node-key S)))
+			  (if (< 0 r)
+			      (set! a -1))
+			  (case a
+			    ((1) 
+			     (set! P (node-rlink S)))
+			    ((-1)
+			     (set! P (node-llink S))))
+			  (set! R P)
+			  (let loop ()
+			    (if (and (not (null? P))
+				     (not (eq? P Q)))
+				(begin
+				  (set! r (cmpr k (node-key P)))
+				  (cond
+				   ((< 0 r)
+				    (set-node-b! P -1)
+				    (set! P (node-llink P)))
+				   ((> 0 r)
+				    (set-node-b! P 1)
+				    (set! P (node-rlink P))))
+				  (loop))))
+			  (balancing-act)))))
+	    (set! balancing-act
+		  (lambda ()
+		    (case (node-b S)
+		      ((0)
+		       (set-node-b! S a)
+		       (set-node-llink! HEAD (add1 (node-llink HEAD))))
+		      ((* a -1)
+		       (set-node-b! S 0)
+		       (done))
+		      ((a)
+		       (cond 
+			((= (node-b R) a) (single-rotation))
+			((= (node-b R) (* a -1)) (double-rotation)))))))
+	    (set! single-rotation
+		  (lambda ()
+		    (set! P R)
+		    (case a
+		      ((1) 
+		       (set-node-rlink! S (node-llink R))
+		       (set-node-llink! R S))
+		      ((-1) 
+		       (set-node-llink! S (node-rlink R))
+		       (set-node-rlink! R S)))
+		    (set-node-b! S 0)
+		    (set-node-b! R 0)))
+	    (set! double-rotation
+		  (lambda ()
+		    (case a
+		      ((1)
+		       (set! P (node-llink R))
+		       (set-node-llink! R (node-rlink P))
+		       (set-node-rlink! P R)
+		       (set-node-rlink! S (node-llink P))
+		       (set-node-llink! P S))
+		      ((-1)
+		       (set! P (node-rlink R))
+		       (set-node-rlink! R (node-llink P))
+		       (set-node-llink! P R)
+		       (set-node-llink! S (node-rlink P))
+		       (set-node-rlink! P S)))
+		    (case (node-b P)
+		      ((a)
+		       (set-node-b! S (* a -1))
+		       (set-node-b! R 0))
+		      ((0)
+		       (set-node-b! S 0)
+		       (set-node-b! R 0))
+		      ((* a -1)
+		       (set-node-b! S 0)
+		       (set-node-b! R a)))
+		    (set-node-b! P 0)))
+	    (set! finishing-touch
+		  (lambda ()
+		    (if (eq? S (node-rlink T))
+			(set-node-rlink! T P)
+			(set-node-llink! T P))))
+	    (set! done
+		  (lambda ()
+		    (if deleted
+			(begin
+			  (set-node-deleted! P #t)
+			  (set-node-data! P null)
+			  'removed)
+			(begin
+			  (if has-data
+			      (begin
+				(set-node-deleted! P #f)
+				(set-node-data! P data)))
+			  (node-data P)))))
+
+	    (initialize)
+	    (compare)))
+
+	(define (hash-map-put! self k d)
+	  (hash-map-get self k 'data d))
+
+	(define (hash-map-remove! self k)
+	  (hash-map-get self k 'delete))
+
+	(define (traverse n side type)
+	  (let ((v (list))
+		(f node-rlink))
+	    (if (eq? side 'llinks)
+		(set! f node-llink))	    
+	    (cond
+	     ((null? n)
+	      v)
+	     (else
+	      (if (eq? type 'keys)
+		  (set! v (append v (list (node-key n))))
+		  (set! v (append v (list (node-data n)))))
+	      (set! v (append v (traverse (f n) side type)))
+	      v))))
+	     
+	(define (hash-map-keys self)
+	  (let ((keys null))
+	    (set! keys (traverse (node-rlink (tree-head self)) 'rlinks 'keys))
+	    (set! keys (append keys (traverse (node-llink (node-rlink (tree-head self))) 'llinks 'keys)))
+	    keys))
+	
+	(define (hash-map-values self)
+	  (let ((values null))
+	    (set! values (traverse (node-rlink (tree-head self)) 'rlinks 'values))
+	    (set! values (append values (traverse (node-llink (node-rlink (tree-head self))) 'llinks 'values)))
+	    values))
+
+	(define (hash-map-clear! self)
+	  (set-tree-head! self (make-node null null 0 (make-node null null null null 0 #f) 0 #f)))
+
+	(define (hash-map-empty? self)
+	  (and (null? (node-rlink (node-rlink (tree-head self))))
+	       (null? (node-llink (node-rlink (tree-head self))))))
+
+	(define (hash-map-for-each self p)
+	  (if (not (hash-map-empty? self))
+	      (begin
+		(let ((keys (hash-map-keys self))
+		      (values (hash-map-values self)))
+		  (for-each p keys values)))))
+	    
+	(provide make-hash-map
+		 hash-map-get
+		 hash-map-put!
+		 hash-map-remove!
+		 hash-map-keys
+		 hash-map-values
+		 hash-map-clear!
+		 hash-map-empty?
+		 hash-map-for-each))

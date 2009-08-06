@@ -1,0 +1,87 @@
+Running tests suite string-tests
+Running tests for (string-find)
+(string-find  ) failed with result -1. Expected result was 0.
+(string-find hello, world o) succeeded with  result 4.
+(string-find hello, world 5 o) failed with result 3. Expected result was 8.
+(string-find hello, world 5 11 o) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 11 #<continuation-mark-set>). Expected result was 8.
+(string-find hello, world 9 o) failed with exception #(struct:exn:fail:contract string-ref: index 12 out of range [0, 11] for string: "hello, world" #<continuation-mark-set>). Expected result was -1.
+(string-find hello, world world) succeeded with  result 7.
+(string-find hello, world o, wo) succeeded with  result 4.
+(string-find hello, world hello) succeeded with  result 0.
+(string-find hello, world ) succeeded with  result -1.
+(string-find hello, world e) succeeded with  result 1.
+(string-find hello, world hell) succeeded with  result 0.
+(string-find hello, world ell) succeeded with  result 1.
+(string-find hello, world ll) succeeded with  result 2.
+(string-find HERE IS A SIMPLE EXAMPLE EXAMPLE) succeeded with  result 17.
+(string-find THIS EXAMPLE IS SIMPLE EXAMPLE) succeeded with  result 5.
+(string-find This is a test of the string search algorithm. 20 algorithm) failed with result 16. Expected result was 36.
+(string-find This is a test of the string search algorithm. 30 algorithm) failed with result 6. Expected result was 36.
+(string-find This is a test of the string search algorithm. 30 32 algorithm) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 32 #<continuation-mark-set>). Expected result was -1.
+(string-find This is a test of the string search algorithm. 30 35 algorithm) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 35 #<continuation-mark-set>). Expected result was -1.
+(string-find ANPANPANANPANMANANPANMAN ANPANMAN) succeeded with  result 8.
+Results for (string-find) tests: 20 run, 12 succeeded, 8 failed.
+Running tests for (string-rfind)
+(string-rfind hello lo) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was 3.
+(string-rfind hello, world world) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was 7.
+(string-rfind hello, world world  world) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was 13.
+(string-rfind hello, world ) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was -1.
+(string-rfind hello, world bye) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was -1.
+(string-rfind hello, world ell) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was 1.
+(string-rfind hello, world h) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was 0.
+(string-rfind hello, world d) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was 11.
+Results for (string-rfind) tests: 8 run, 0 succeeded, 8 failed.
+Running tests for (contains)
+(contains? (list 100 200 300 10) 200) succeeded with  result #t.
+(contains? (list 100 200 300 10) 20) succeeded with  result #f.
+(contains? hello, world w) succeeded with  result #t.
+(contains? #(sunny ellie johny) ellie) succeeded with  result #f.
+(contains? #(sunny ellie johny) ellie equal?) succeeded with  result #t.
+Results for (contains) tests: 5 run, 5 succeeded, 0 failed.
+Running tests for (string-ends-with?)
+(string-ends-with? hello, world world) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #t.
+(string-ends-with? hello, world hello) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #f.
+(string-ends-with? hello, world ) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #f.
+(string-ends-with? hello, world rld) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #t.
+(string-ends-with? hello, world ld) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #t.
+(string-ends-with? hello, world d) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #t.
+(string-ends-with? hello, world w) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #f.
+(string-ends-with? hello, world worl) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #f.
+(string-ends-with? hello, world bye) failed with exception #(struct:exn:fail:contract string-length: expects argument of type <string>; given 0 #<continuation-mark-set>). Expected result was #f.
+Results for (string-ends-with?) tests: 9 run, 0 succeeded, 9 failed.
+Running tests for (string-starts-with?)
+(string-starts-with? hello, world hello) succeeded with  result #t.
+(string-starts-with? hello, world world) succeeded with  result #f.
+(string-starts-with? hello, world ) succeeded with  result #f.
+(string-starts-with? hello, world hell) succeeded with  result #t.
+(string-starts-with? hello, world he) succeeded with  result #t.
+(string-starts-with? hello, world h) succeeded with  result #t.
+(string-starts-with? hello, world o) succeeded with  result #f.
+(string-starts-with? hello, world ello) succeeded with  result #f.
+(string-starts-with? hello, world bye) succeeded with  result #f.
+Results for (string-starts-with?) tests: 9 run, 9 succeeded, 0 failed.
+Running tests for (string-ltrim)
+(string-ltrim  hello) succeeded with  result hello.
+(string-ltrim hello) succeeded with  result hello.
+(string-ltrim     hello  ) succeeded with  result hello  .
+Results for (string-ltrim) tests: 3 run, 3 succeeded, 0 failed.
+Running tests for (string-rtrim)
+(string-rtrim hello ) succeeded with  result hello.
+(string-rtrim hello) succeeded with  result hello.
+(string-rtrim     hello  ) succeeded with  result     hello.
+Results for (string-rtrim) tests: 3 run, 3 succeeded, 0 failed.
+Running tests for (string-trim)
+(string-trim  hello) succeeded with  result hello.
+(string-trim hello) succeeded with  result hello.
+(string-trim hello    world   ) succeeded with  result hello    world.
+(string-trim     hello  ) succeeded with  result hello.
+Results for (string-trim) tests: 4 run, 4 succeeded, 0 failed.
+Running tests for (string-split)
+(string-split hello, world) succeeded with  result (hello, world).
+(string-split hello, world (list   ,)) succeeded with  result (hello  world).
+(string-split This is a#long sentence. (list   # .)) succeeded with  result (This is a long sentence).
+Results for (string-split) tests: 3 run, 3 succeeded, 0 failed.
+Total tests: 64
+Succeeded: 39
+Failed: 25
+(64 39 25)

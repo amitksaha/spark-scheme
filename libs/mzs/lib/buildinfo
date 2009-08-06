@@ -1,0 +1,6 @@
+CC=gcc
+CFLAGS=-g -O2   -Wall
+OPTIONS=
+MZOPTIONS=
+LDFLAGS=
+LIBS=-ldl -lm  -rdynamic 

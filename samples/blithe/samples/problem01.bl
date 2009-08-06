@@ -1,0 +1,35 @@
+-- Solution to Project Euler - Problem 1 (http://projecteuler.net/index.php?section=problems)
+-- Add all the natural numbers below one thousand that are multiples of 3 or 5.
+-- Sample usage:
+--    10 add-multiples-of-3-or-5  .
+--    => 23
+
+: add-multiples-of-3-or-5  
+    init-counter init-sum times add 'sum @ ;
+
+: init-counter  
+    0 'counter ! ;
+
+: init-sum 
+    0 'sum ! ;
+
+: add 
+    set-counter multiple-of-3-or-5 ifTrue add-to-sum else drop incr-counter ;
+
+: set-counter 
+    'counter @ ;
+
+: multiple-of-3-or-5 
+    multiple-of-3 ifFalse multiple-of-5 ;
+
+: multiple-of-3 
+    dup 3 mod 0 = dup ;
+
+: multiple-of-5 
+    drop dup 5 mod 0 = ;
+
+: add-to-sum 
+    'sum @ + 'sum ! ;
+
+: incr-counter 
+    'counter @ 1 + 'counter ! ;

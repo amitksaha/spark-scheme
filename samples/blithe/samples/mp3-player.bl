@@ -1,0 +1,21 @@
+"Software to control an mp3 player. Enter the word `player' to start simulation." 'mp3-player doc
+
+'mp3-player vocabulary
+
+: player switch-on ;
+
+: switch-on #t whileTrue run-control ;
+
+: run-control wait-on-controls call ;
+
+: wait-on-controls newline show-options read 1 - pick ;
+
+: play "playing ..." . 5 sleep #t ;
+
+: stop clear "bye." . #f ;
+
+: prev "previous ..." . 2 sleep #t ;
+
+: next "next ..." . 2 sleep #t ;
+
+: show-options clear 'next 'prev 'stop 'play .s ;
