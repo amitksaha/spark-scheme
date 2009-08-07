@@ -237,10 +237,10 @@ namespace spark_curl
   static Scheme_Object* curl_easy_init(int, Scheme_Object**);
   static Scheme_Object* curl_easy_cleanup(int, Scheme_Object**);
   static Scheme_Object* curl_easy_duphandle(int, Scheme_Object**);
-  static Scheme_Object* curl_easy_getinfo(int, Scheme_Object**);
+  static Scheme_Object* _curl_easy_getinfo(int, Scheme_Object**);
   static Scheme_Object* curl_easy_perform(int, Scheme_Object**);
   static Scheme_Object* curl_easy_reset(int, Scheme_Object**);
-  static Scheme_Object* curl_easy_setopt(int, Scheme_Object**);
+  static Scheme_Object* _curl_easy_setopt(int, Scheme_Object**);
   static Scheme_Object* curl_easy_strerror(int, Scheme_Object**);
   static Scheme_Object* curl_easy_unescape(int, Scheme_Object**);
   static Scheme_Object* curl_multi_init(int, Scheme_Object**);
@@ -549,11 +549,11 @@ _add_procedures(Scheme_Env* env)
 		  "curl-easy-duphandle", 1),
     new Procedure(spark_curl::curl_easy_perform, 
 		  "curl-easy-perform", 1),
-    new Procedure(spark_curl::curl_easy_getinfo, 
+    new Procedure(spark_curl::_curl_easy_getinfo, 
 		  "curl-easy-getinfo", 2),
     new Procedure(spark_curl::curl_easy_reset, 
 		  "curl-easy-reset", 1),
-    new Procedure(spark_curl::curl_easy_setopt, 
+    new Procedure(spark_curl::_curl_easy_setopt, 
 		  "curl-easy-setopt", 3),
     new Procedure(spark_curl::curl_easy_strerror, 
 		  "curl-easy-strerror", 0),
@@ -689,7 +689,7 @@ spark_curl::curl_easy_duphandle(int argc, Scheme_Object** argv)
 }
 
 Scheme_Object* 
-spark_curl::curl_easy_getinfo(int argc, Scheme_Object** argv)
+spark_curl::_curl_easy_getinfo(int argc, Scheme_Object** argv)
 {
   DEFAULT_RET_INIT;
 
@@ -830,7 +830,7 @@ spark_curl::curl_easy_reset(int argc, Scheme_Object** argv)
 }
 
 Scheme_Object* 
-spark_curl::curl_easy_setopt(int argc, Scheme_Object** argv)
+spark_curl::_curl_easy_setopt(int argc, Scheme_Object** argv)
 {
   DEFAULT_RET_INIT;
   
