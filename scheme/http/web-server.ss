@@ -20,6 +20,7 @@
 
 ;; TODO: 
 ;;  * Test and fix session management, its GC etc.
+;;  * Implement session timeout for threads.
 
 
 (library web-server
