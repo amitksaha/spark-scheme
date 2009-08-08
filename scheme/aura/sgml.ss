@@ -20,9 +20,7 @@
 
 (library aura-sgml
 
-	 (require-for-syntax mzscheme)
-
-	 (export html? css tag <> : sgml)
+	 (export html? css tag sgml)
 
 	 (define (html? obj)
 	   (if (procedure? obj)
@@ -187,14 +185,5 @@
 			      ((t 'prop!) (car a) (car (cdr a)))))
 			   (process-sgml elem)))))
 	     (process-sgml sgml-doc)
-	     root))
+	     root)))
 	     
-	 (define-syntax :
-	   (syntax-rules ()
-	     ((_ (k v) ...)
-	      (list (cons k v) ...))))
-
-	 (define-syntax <>
-	   (syntax-rules ()
-	     ((_ n a c ...)
-	      (tag n a (list c ...))))))

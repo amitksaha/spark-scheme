@@ -50,13 +50,27 @@
 				      error-code 
 				      version)
 	   (let ((out (open-output-string)))
-	     (fprintf out "~a ~a ~a ~a ~a" 
+	     (fprintf out "~a ~a~a" 
+		      version 
+		      error-message
+		      (crlf))
+	     (fprintf out "Date: ~a~a" 
+		      (date-str (gmt-date (current-seconds))) 
+		      (crlf))
+	     (fprintf out "Content-Type: text/html~a" 
+		      (crlf))
+	     (fprintf out "Content-Length: ~a~a" 
+		      (string-length error-message)
+		      (crlf))
+	     (fprintf out "~a" (crlf))
+	     (fprintf out "~a ~a ~a - ~a ~a" 
 		      version
 		      error-code
 		      (error->string error-code)
 		      error-message
 		      (crlf))
 	     (get-output-string out)))
+
 
 	 (define (crlf) (string #\return #\linefeed))
 

@@ -100,7 +100,7 @@
 	 (define (find-session-id url)
 	   (let ((idx (string-find url *sess-id-sep*)))
 	     (if (= idx -1) -1
-		 (let ((end-idx (string-find url *sess-id-sep* (+ idx 1))))
+		 (let ((end-idx (string-find url (+ idx 1) *sess-id-sep*)))
 		   (if (> idx 0)
 		       (string->number (substring url (+ idx 1) end-idx))
 		       -1)))))

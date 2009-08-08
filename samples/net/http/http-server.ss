@@ -1,6 +1,7 @@
 (import (net)
 	(reactor)
-	(http))
+	(http)
+	(aura))
 
 (define httpd (web-server (list 'port 8080)))
 (web-server-start httpd)

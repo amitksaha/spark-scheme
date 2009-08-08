@@ -22,69 +22,57 @@
 
 (library http-resource-loader
 
-	 (export resource-create
-		 resource-load)
+	 (export resource-load)
 
-	 (import (http-session) (http-globals))
+	 (import (http-session) 
+		 (http-request-parser)
+		 (http-globals))
 
-	 (define-struct resource-loader-s (cache))
-	 
-	 (define (resource-create)
-	   (make-resource-loader-s (make-hash-table 'equal)))
-	 
-	 (define (resource-load res-loader web-server-conf
-				uri 
-				http-data session)
-	   (let* ((uri-data (parse-uri uri))
+	 (define (resource-load web-server-conf
+				http-request session)
+	   (let* ((uri (normalize-uri (http-request-uri http-request)))
+		  (uri-data (parse-uri uri))
 		  (root-uri (list-ref uri-data 0))
-		  (sess-info (list-ref uri-data 1)))
-	     (let* ((type (find-res-type root-uri
-					 (hash-table-get web-server-conf 'script-ext)))
-		    (res (find-resource-data res-loader root-uri)))
-	       (if (null? res)
-		   (set! res (read-fresh res-loader root-uri type)))
-	       (if (eq? type 'script)
-		   (let ((ids (parse-session-info sess-info)))
-		     (execute-resource res root-uri 
-				     (list-ref ids 0)
-				     (list-ref ids 1)
-				     http-data session))
-		   res))))
+		  (sess-info (list-ref uri-data 1))
+		  (res null)
+		  (type (find-res-type root-uri
+				       (hash-table-get web-server-conf 
+						       'script-ext)))
+		  (res null))
+	     (set! res (read-fresh root-uri type web-server-conf))
+	     (cond
+	      ((eq? type 'script)
+	       (let ((ids (parse-session-info sess-info)))
+		 (cdr (execute-resource res root-uri 
+					(list-ref ids 0)
+					(list-ref ids 1)
+					(http-request-data http-request)
+					session))))
+	      (else res))))
 
-	 (define (find-resource-data res-loader uri)
-	   (let ((res (hash-table-get (resource-loader-s-cache res-loader) uri null)))
-	     (if (not (null? res))
-		 (if (resource-modified? res) null res)
-		 res)))
-
-	 (define (resource-modified? res)
-	   (let* ((last-modified (car res))
-		  (curr-modified (file-or-directory-modify-seconds (cdr res)))
-		  (res-modified (not (= last-modified curr-modified))))
-	     res-modified))
-
-	 (define (read-fresh res-loader uri type)
+	 (define (read-fresh uri type web-server-conf)
 	   (case type
-	     ((file) (read-fresh-file res-loader uri))
-	     ((script) (read-fresh-script res-loader uri))))
+	     ((file) (read-fresh-file uri web-server-conf))
+	     ((script) (read-fresh-script uri))))
 
-	 (define (read-fresh-file res-loader uri)
-	   (let* ((sz (file-size uri))
-		  (file (open-input-file uri))
-		  (res (cons (file-or-directory-modify-seconds uri)
-			     (read-bytes sz file)))
-		  (cache (resource-loader-s-cache res-loader)))
-	     (atomic
-	      (hash-table-put! cache uri res))
-	     res))
+	 (define (read-fresh-file uri web-server-conf)
+	   (let ((sz (file-size uri)))		 
+	     (if (> sz (hash-table-get web-server-conf 'max-response-size))
+		 (raise "Response will exceed maximum limit."))
+	     (let ((file (open-input-file uri)))
+	       (read-bytes sz file))))
 	 
-	 (define (read-fresh-script res-loader uri)
-	   (let ((res (cons (file-or-directory-modify-seconds uri)
-			    (load uri)))
-		 (cache (resource-loader-s-cache res-loader)))
-	     (atomic
-	      (hash-table-put! cache uri res))
-	     res))
+	 (define (read-fresh-script uri)
+	   (let ((ret (load uri)))
+	     ;; TODO: Cache ret.
+	     ret))
+
+	 (define (normalize-uri uri)
+	   (if (char=? (string-ref uri 0) #\/)
+	       (set! uri (string-append "." uri)))
+	   (if (string=? uri "./")
+	       (set! uri "./index.html"))
+	   uri)
 
 	 (define (find-res-type uri script-ext)
 	   (let ((ext (filename-extension uri)))
@@ -96,10 +84,11 @@
 	   (let ((idx (string-find uri *sess-id-sep*)))
 	     (if (= idx -1) 
 		 (list uri null)
-		 (list (substring uri 0 idx) (find-session-info uri (add1 idx))))))
+		 (list (substring uri 0 idx) 
+		       (find-session-info uri (add1 idx))))))
 
 	 (define (find-session-info uri start-idx)
-	   (let ((idx (string-find uri *sess-id-sep* start-idx)))
+	   (let ((idx (string-find uri start-idx *sess-id-sep*)))
 	     (if (= idx -1) null
 		 (substring uri start-idx idx))))
 
@@ -116,8 +105,6 @@
 				   http-data session)
 	   (let ((content 
 		  (session-execute-procedure 
-		   uri (cdr res) sess-id 
+		   uri res sess-id 
 		   proc-count http-data session)))
-	     (cons (car res) (cdr content)))))
-
-
+	     content)))

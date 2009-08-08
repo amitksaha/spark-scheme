@@ -103,14 +103,6 @@
 		 (substring url (+ idx 1))
 		 null)))
 
-	 (define (extract-request-url url)
-	   (let ((idx (string-find url "?")))
-	     (if (= idx -1)
-		 (set! idx (string-find url "$")))
-	     (if (> idx 0)
-		 (substring url 0 idx)
-		 url)))
-	 
 	 (define (parse-request-data req)
 	   (if (not (null? req))	       
 	       (let ((key-values (string-split req '(#\&)))
@@ -130,11 +122,6 @@
 	     (if (eof-object? line) 
 		 null
 		 line)))
-
-	 (define (normalize-uri uri)
-	   (if (char=? (string-ref uri 0) #\/)
-	       (extract-request-url (string-append "." uri))
-	       (extract-request-url uri)))
 
 	 ;; As of now, we support only GET and POST.
 	 (define (assert-method method)

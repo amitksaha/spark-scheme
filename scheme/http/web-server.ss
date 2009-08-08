@@ -19,14 +19,12 @@
 ;; (Electronic mail: vijay.the.schemer@gmail.com)
 
 ;; TODO: 
-;;  * Implement actual request handling.
-;;  * Fix file loading, search paths, etc
 ;;  * Test and fix session management, its GC etc.
-;;  * Implement logging. No logging if 'log-port is null.
+
 
 (library web-server
 
-	 (import (net) (reactor)
+	 (import (net)
 		 ((prefix parser:: http-request-parser))
 		 ((prefix loader:: http-resource-loader))
 		 ((prefix response:: http-response))
@@ -42,7 +40,8 @@
 	 (define-struct web-server-s (configuration
 				      sessions
 				      sessions-gc-thread
-				      server-socket))
+				      server-socket
+				      log-port))
 	 
 
 	 ;; (list) -> web-server
@@ -50,32 +49,36 @@
 	 ;; contains key-values that make up the web-server configuration.
 	 ;; Valid key-values are
 	 ;; 'port integer - The port to listen on. Defaults to 80.
-	 ;; 'script-exts string - Script file extention. Defaults to "ss".
+	 ;; 'script-ext string - Script file extention. Defaults to "ss".
 	 ;; 'session-timeout integer - Session timeout in seconds. 
          ;;                            Defaults to 5 seconds.
-	 ;; 'log-port - Output port where logging will happen.
-	 ;;             Defaults to standard output port.
 	 ;; 'max-header-length - Maximum number of bytes that the request
 	 ;;                      header can contain. Defaults to 512 Kb
 	 ;; 'max-body-length - Maximum number of bytes the body can contain.
 	 ;;                    Defaults to 5Mb.
+	 ;; 'max-response-size - Maximum size of response. Defaults to 5Mb.
 	 ;; E.g.: (web-server (list 'port 8080 'session-timeout 10))
-	 (define (web-server conf)
-	   (let ((self (make-web-server-s (make-default-conf)
-					  (make-hash-table 'equal)
-					  null null)))
-	     (while (not (null? conf))
-		    (web-server-configuration! self
-					       (car conf)
-					       (cadr conf))
-		    (set! conf (cddr conf)))
-	     (let ((server-socket (socket))
-		   (addr (address)))
-	       (address-port! addr (web-server-configuration self 'port))
-	       (socket-open server-socket)
-	       (socket-bind server-socket addr #t)
-	       (set-web-server-s-server-socket! self server-socket))
-	     self))
+	 (define web-server
+	   (case-lambda
+	    ((conf)
+	     (web-server conf (current-output-port)))
+	    ((conf log-port)
+	     (let ((self (make-web-server-s (make-default-conf)
+					    (make-hash-table 'equal)
+					    null null 
+					    log-port)))					  
+	       (while (not (null? conf))
+		      (web-server-configuration! self
+						 (car conf)
+						 (cadr conf))
+		      (set! conf (cddr conf)))
+	       (let ((server-socket (socket))
+		     (addr (address)))
+		 (address-port! addr (web-server-configuration self 'port))
+		 (socket-open server-socket)
+		 (socket-bind server-socket addr #t)
+		 (set-web-server-s-server-socket! self server-socket))
+	       self))))
 
 	 ;; (web-server procedure) -> bool
 	 ;; Starts the web-server and enters a listen loop.
@@ -94,14 +97,12 @@
 				(sessions-gc-proc self)
 				(loop))))))
 	       (set-web-server-s-sessions-gc-thread! self session-gc-thread)
+	       (socket-listen server-socket)
 	       (while (condition-check-proc)
-		      (socket-listen server-socket)
 		      (let ((conn (socket-accept server-socket)))
-			(async on-client-connect (list self conn))
+			(thread (lambda () (on-client-connect self conn)))
 			;; Just to context switch.
 			(sleep 0)))))))
-					
-
 
 	 (define (web-server-stop self)
 	   (socket-close (web-server-s-server-socket self))
@@ -127,14 +128,13 @@
 	     (hash-table-put! conf 'port 80)
 	     (hash-table-put! conf 'script-ext #"ss")
 	     (hash-table-put! conf 'session-timeout 5) ;; 5 seconds
-	     (hash-table-put! conf 'log-port (current-output-port))
 	     (hash-table-put! conf 'max-header-length (* 1024 512)) ;; 512Kb
 	     (hash-table-put! conf 'max-body-length (* 1024 5120)) ;; 5Mb
+	     (hash-table-put! conf 'max-response-size (* 1024 5120)) ;; 5Mb
 	     conf))
 
 	 ;; Called when a new client connection is established.
 	 (define (on-client-connect self client-conn)
-	   (printf "client connected...~n") (flush-output)
 	   (let ((client-socket (car client-conn))
 		 (conf (web-server-s-configuration self)))
 	     (try
@@ -142,24 +142,30 @@
 		     (body-str (read-body conf client-socket http-request)))
 		(parser::http-request-data! http-request body-str)
 		(handle-request self 
+				client-socket
 				http-request))
 	      (catch (lambda (error)
-		       (cond
-			((parser::http-parser-error? error)
-			 (return-error client-socket 
-				       (parser::http-parser-error-message error)
-				       conf))
-			(else
-			 (fprintf (hash-table-get conf 'log-port)
-				  "Error: ~a in connection ~a."
-				  error
-				  (address->string (car (cdr client-conn)))))))))
+		       (write-log self
+				  (list "Error: ~a in connection ~a."
+					error
+					(address->string 
+					 (car (cdr client-conn)))))
+		       (let ((str null))
+			 (cond
+			   ((string? error) (set! str error))
+			   ((parser::http-parser-error? error)
+			    (set! str (parser::http-parser-error-message error)))
+			   (else (set! str (exn-message error))))
+			 (return-error self
+				       client-socket 
+				       str
+				       conf)))))
 	     (try
 	      (socket-close client-socket)
 	      (catch (lambda (error)
-		       (fprintf (hash-table-get conf 'log-port)
-				"Error: (socket-close): ~a~n"
-				error))))))
+		       (write-log self
+				  '("Error: (socket-close): ~a."
+				    error)))))))
 
 	 (define (read-header conf client-socket)
 	   (let ((max-header-length (hash-table-get conf 'max-header-length))
@@ -197,21 +203,41 @@
 		   (socket-recv client-socket content-length)))
 		 "")))
 
-	 (define (handle-request self http-request)
-	   (printf "~a~n" (parser::http-request->string http-request))
-	   (flush-output))
+	 (define (handle-request self client-socket http-request)
+	   (send-response client-socket 
+			  (loader::resource-load 
+			   (web-server-s-configuration self)
+			   http-request
+			   (web-server-s-sessions self))))
 
-	 (define (return-error client-socket error-message
+	 (define (return-error self
+			       client-socket 
+			       error-message
 			       conf)
 	   (try
-	    (socket-send client-socket 
-			 (response::make-error-response
-			  error-message
-			  500 
-			  "HTTP/1.0"))
+	    (send-response client-socket 
+			   (response::make-error-response
+			    error-message
+			    500 
+			    "HTTP/1.0"))
 	    (catch (lambda (error)
-		     (fprintf (hash-table-get conf 'log-port)
-			      "(return-error): ~a~n" error)))))
+		     (write-log self
+				'("(return-error): ~a." error))))))
+	 
+	 (define (send-response client-socket content)
+	   (socket-send client-socket content))
+
+	 (define (write-log self entries)
+	   (if (not (list? entries))
+	       (set! entries (list entries)))
+	   (let ((port (web-server-s-log-port self)))
+	     (if (not (null? port))
+		 (let ((f (list fprintf port)))
+		   (for e in entries 
+			(set! f (append f (list e))))
+		   (eval f)
+		   (fprintf port "~n")
+		   (flush-output port)))))
 
 	 ;; Makes timedout sessions available for garbage collection.
 	 (define (sessions-gc-proc self)
