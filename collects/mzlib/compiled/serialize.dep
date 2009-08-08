@@ -1,1 +1,0 @@
-("371" (collects . #"syntax/modcollapse.ss") (collects . #"mzlib/etc.ss") (collects . #"mzlib/list.ss") (collects . #"mzlib/private/serialize-structs.ss") (collects . #"syntax/struct.ss"))

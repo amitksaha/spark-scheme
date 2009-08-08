@@ -1,1 +1,0 @@
-("371" (collects . #"setup/dirs.ss") (collects . #"syntax/stx.ss"))
