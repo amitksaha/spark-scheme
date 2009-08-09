@@ -2,13 +2,15 @@
 
 (define (counter)
   (atomic
-   (set! count (add1 count))
-   (printf "~a " count)))
+   (begin
+     (set! count (add1 count))
+     (printf "~a " count))))
 
 (define (counter-with-named-atomic)
   (atomic "counter"
-   (set! count (add1 count))
-   (printf "~a " count)))
+	  (begin
+	    (set! count (add1 count))
+	    (printf "~a " count))))
 
 (for i in (range 1000)
      (thread counter))

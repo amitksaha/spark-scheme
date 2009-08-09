@@ -143,7 +143,8 @@
 	     (try
 	      (let* ((http-request (read-header conf client-socket))
 		     (body-str (read-body conf client-socket http-request)))
-		(parser::http-request-data! http-request body-str)
+		(if (> (string-length (string-trim body-str)) 0)
+		    (parser::http-request-data! http-request body-str))
 		(handle-request self 
 				client-socket
 				http-request))

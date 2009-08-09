@@ -61,30 +61,32 @@
 		  (id (session-s-id sess))
 		  (procs-len (length procs)))
 	     (let ((proc-count (add1 p-count)))
-	       (let ((state (session-s-state sess)) (res-html null))
-		 (hash-table-map state-to-add (lambda (k v) (hash-table-put! state k v)))
+	       (let ((state (session-s-state sess)) 
+		     (res-html null))
+		 (hash-table-map state-to-add 
+				 (lambda (k v) (hash-table-put! state k v)))
+
 		 (set! res-html ((list-ref procs (sub1 proc-count))
 				 (make-session-url url id proc-count) 
 				 state))
 		 (if (>= proc-count procs-len)
-		     (begin 
-		       ;;(session-destroy id sessions)
-		       (cons 'done res-html))
-		     (cons 'next res-html))))))
+		     (cons 'done res-html))
+		 (cons 'next res-html)))))
 
 	 (define (next-session-id)
-	   (let ((new-id 0))
-	     (atomic
-	      (set! *session-id* (add1 *session-id*))
-	      (set! new-id *session-id*))
-	     new-id))
+	   (let ((id 0))
+	     (atomic "*session-id*" 
+		     (begin
+		       (set! *session-id* (add1 *session-id*))
+		       (set! id *session-id*)))
+	     id))
 
 	 (define (find-session id url sessions)
 	   (if (= id -1) 
 	       (set! id (session-create url sessions)))
 	   (let ((sess (hash-table-get sessions id null)))
 	     (if (null? sess) 
-		 (raise 'null-session)
+		 (raise "null session")
 		 (begin
 		  (set-session-s-last-access! sess (current-seconds))
 		  sess))))

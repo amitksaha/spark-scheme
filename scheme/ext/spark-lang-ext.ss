@@ -107,12 +107,12 @@
 
 	(define-syntax atomic
 	  (syntax-rules ()
-	    ((atomic b ...)
+	    ((atomic block)
 	     (begin
 	       (semaphore-wait __sema__)
-	       b ...
+	       block
 	       (semaphore-post __sema__)))
-	    ((atomic name b ...)
+	    ((atomic name block)
 	     (let ((sema (hash-table-get __sema_map__ name null)))
 	       (cond
 		((null? sema)
@@ -121,7 +121,7 @@
 		 (hash-table-put! __sema_map__ name sema)
 		 (semaphore-post __sema_map_lock__)))
 	       (semaphore-wait sema)
-	       b ...
+	       block
 	       (semaphore-post sema)))))	
 
 	(provide try
