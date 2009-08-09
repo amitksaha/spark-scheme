@@ -39,6 +39,7 @@
 		 web-server-configuration!)
 
 	 (define-struct web-server-s (configuration
+				      resource-loader
 				      sessions
 				      sessions-gc-thread
 				      server-socket
@@ -65,9 +66,10 @@
 	     (web-server conf (current-output-port)))
 	    ((conf log-port)
 	     (let ((self (make-web-server-s (make-default-conf)
+					    (loader::resource-loader)
 					    (make-hash-table 'equal)
 					    null null 
-					    log-port)))					  
+					    log-port)))		  
 	       (while (not (null? conf))
 		      (web-server-configuration! self
 						 (car conf)
@@ -206,7 +208,8 @@
 
 	 (define (handle-request self client-socket http-request)
 	   (send-response client-socket 
-			  (loader::resource-load 
+			  (loader::resource-loader-load
+			   (web-server-s-resource-loader self)
 			   (web-server-s-configuration self)
 			   http-request
 			   (web-server-s-sessions self))))

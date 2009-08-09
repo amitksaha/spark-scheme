@@ -18,18 +18,21 @@
 ;; information or have any questions.
 ;; (Electronic mail: vijay.the.schemer@gmail.com)
 
-;;(load "session.ss")
-
 (library http-resource-loader
 
-	 (export resource-load)
+	 (export resource-loader resource-loader-load)
 
 	 (import (http-session) 
 		 (http-request-parser)
 		 (http-globals))
 
-	 (define (resource-load web-server-conf
-				http-request session)
+	 (define-struct resource-loader-s (script-cache))
+
+	 (define (resource-loader)
+	   (make-resource-loader-s (make-hash-table 'equal)))
+
+	 (define (resource-loader-load self web-server-conf
+				       http-request session)
 	   (let* ((uri (normalize-uri (http-request-uri http-request)))
 		  (uri-data (parse-uri uri))
 		  (root-uri (list-ref uri-data 0))
@@ -39,7 +42,7 @@
 				       (hash-table-get web-server-conf 
 						       'script-ext)))
 		  (res null))
-	     (set! res (read-fresh root-uri type web-server-conf))
+	     (set! res (load-resource self root-uri type web-server-conf))
 	     (cond
 	      ((eq? type 'script)
 	       (let ((ids (parse-session-info sess-info)))
@@ -50,10 +53,16 @@
 					session))))
 	      (else res))))
 
-	 (define (read-fresh uri type web-server-conf)
+	 (define (load-resource self uri 
+				type web-server-conf)
 	   (case type
 	     ((file) (read-fresh-file uri web-server-conf))
-	     ((script) (read-fresh-script uri))))
+	     ((script) 
+	      (let ((cached 
+		     (hash-table-get (resource-loader-s-script-cache self)
+				     uri null)))
+		(if (not (null? cached)) cached
+		    (read-fresh-script self uri))))))
 
 	 (define (read-fresh-file uri web-server-conf)
 	   (let ((sz (file-size uri)))		 
@@ -62,9 +71,11 @@
 	     (let ((file (open-input-file uri)))
 	       (read-bytes sz file))))
 	 
-	 (define (read-fresh-script uri)
+	 (define (read-fresh-script self uri)
 	   (let ((ret (load uri)))
-	     ;; TODO: Cache ret.
+	     (atomic 
+	      (hash-table-put! (resource-loader-s-script-cache self)
+			       uri ret))
 	     ret))
 
 	 (define (normalize-uri uri)

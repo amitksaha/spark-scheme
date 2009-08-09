@@ -551,7 +551,7 @@ configure:20622: $? = 0
 configure:20640: result: yes
 configure:20560: checking for fullfsync
 configure:20616: gcc -o conftest -g -O2   conftest.c  >&5
-/tmp/ccOxfxrE.o: In function `main':
+/tmp/cccJiR6o.o: In function `main':
 /home/vijay/Projects/spark-scheme/libs/sqlite/conftest.c:58: undefined reference to `fullfsync'
 collect2: ld returned 1 exit status
 configure:20622: $? = 1
@@ -628,7 +628,7 @@ configure:20622: $? = 0
 configure:20640: result: yes
 configure:20667: checking for library containing tgetent
 configure:20708: gcc -o conftest -g -O2   conftest.c  >&5
-/tmp/cc8Ehvob.o: In function `main':
+/tmp/ccWH0JlV.o: In function `main':
 /home/vijay/Projects/spark-scheme/libs/sqlite/conftest.c:37: undefined reference to `tgetent'
 collect2: ld returned 1 exit status
 configure:20714: $? = 1
@@ -678,7 +678,7 @@ configure:20714: $? = 0
 configure:20742: result: -lcurses
 configure:20750: checking for library containing readline
 configure:20791: gcc -o conftest -g -O2   conftest.c -lcurses  >&5
-/tmp/ccypDtGv.o: In function `main':
+/tmp/ccqqVLdi.o: In function `main':
 /home/vijay/Projects/spark-scheme/libs/sqlite/conftest.c:37: undefined reference to `readline'
 collect2: ld returned 1 exit status
 configure:20797: $? = 1
@@ -732,7 +732,7 @@ configure:20901: $? = 0
 configure:20919: result: yes
 configure:20948: checking for library containing pthread_create
 configure:20989: gcc -o conftest -g -O2   conftest.c  >&5
-/tmp/ccqLnGk7.o: In function `main':
+/tmp/cccKWCUw.o: In function `main':
 /home/vijay/Projects/spark-scheme/libs/sqlite/conftest.c:38: undefined reference to `pthread_create'
 collect2: ld returned 1 exit status
 configure:20995: $? = 1
@@ -783,7 +783,7 @@ configure:20995: $? = 0
 configure:21023: result: -lpthread
 configure:21046: checking for library containing dlopen
 configure:21087: gcc -o conftest -g -O2   conftest.c -lpthread  >&5
-/tmp/ccI1XBAr.o: In function `main':
+/tmp/ccc7G9QT.o: In function `main':
 /home/vijay/Projects/spark-scheme/libs/sqlite/conftest.c:38: undefined reference to `dlopen'
 collect2: ld returned 1 exit status
 configure:21093: $? = 1
