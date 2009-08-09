@@ -19,8 +19,8 @@
 ;; (Electronic mail: vijay.the.schemer@gmail.com)
 
 ;; TODO: 
-;;  * Test and fix session management, its GC etc.
-;;  * Implement session timeout for threads.
+;;  * Implement session timeout. (see sessions-gc-proc).
+;;  * Implement timeout for service threads.
 
 
 (library web-server
@@ -53,7 +53,7 @@
 	 ;; 'port integer - The port to listen on. Defaults to 80.
 	 ;; 'script-ext string - Script file extention. Defaults to "ss".
 	 ;; 'session-timeout integer - Session timeout in seconds. 
-         ;;                            Defaults to 5 seconds.
+         ;;                            Defaults to 5 minutes.
 	 ;; 'max-header-length - Maximum number of bytes that the request
 	 ;;                      header can contain. Defaults to 512 Kb
 	 ;; 'max-body-length - Maximum number of bytes the body can contain.
@@ -130,7 +130,7 @@
 	   (let ((conf (make-hash-table)))
 	     (hash-table-put! conf 'port 80)
 	     (hash-table-put! conf 'script-ext #"ss")
-	     (hash-table-put! conf 'session-timeout 5) ;; 5 seconds
+	     (hash-table-put! conf 'session-timeout (* 5 60)) ;; 5 minutes
 	     (hash-table-put! conf 'max-header-length (* 1024 512)) ;; 512Kb
 	     (hash-table-put! conf 'max-body-length (* 1024 5120)) ;; 5Mb
 	     (hash-table-put! conf 'max-response-size (* 1024 5120)) ;; 5Mb
@@ -248,9 +248,6 @@
 	 (define (sessions-gc-proc self)
 	   (let ((session-timeout-secs
 		  (web-server-configuration self 'session-timeout)))
-	     (if (null? session-timeout-secs)
-		 (set! session-timeout-secs (* 5 60)))
-	     (sleep session-timeout-secs)
 	     (let ((sessions (web-server-s-sessions self))
 		   (gc-session-ids (list)))
 	       (hash-table-for-each 
